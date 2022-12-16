@@ -20,9 +20,10 @@
 package com.philliphsu.clock2;
 
 import android.os.Bundle;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,14 +57,9 @@ public abstract class BaseFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        ButterKnife.unbind(this); // Only for fragments!
     }
 
-    /**
-     * Callback invoked when this Fragment is part of a ViewPager and it has been
-     * selected, as indicated by {@link android.support.v4.view.ViewPager.OnPageChangeListener#onPageSelected(int)
-     * onPageSelected(int)}.
-     */
+
     public void onPageSelected() {
         // TODO: Consider making this abstract. The reason it wasn't abstract in the first place
         // is not all Fragments in our ViewPager need to do things upon being selected. As such,

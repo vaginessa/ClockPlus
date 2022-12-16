@@ -20,13 +20,13 @@
 package com.philliphsu.clock2.list;
 
 import android.os.Bundle;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.Nullable;
-import android.support.annotation.StringRes;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.Nullable;
+import androidx.annotation.StringRes;
+import androidx.loader.app.LoaderManager;
+import androidx.loader.content.Loader;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +37,7 @@ import com.philliphsu.clock2.R;
 import com.philliphsu.clock2.data.BaseItemCursor;
 import com.philliphsu.clock2.data.ObjectWithId;
 
-import butterknife.Bind;
+import butterknife.BindView;
 
 /**
  * Created by Phillip Hsu on 7/26/2016.
@@ -60,11 +60,11 @@ public abstract class RecyclerViewFragment<
 
     // TODO: Rename id to recyclerView?
     // TODO: Rename variable to mRecyclerView?
-    @Bind(R.id.list)
+    @BindView(R.id.list)
     RecyclerView mList;
 
     @Nullable // Subclasses are not required to use the default content layout, so this may not be present.
-    @Bind(R.id.empty_view)
+    @BindView(R.id.empty_view)
     TextView mEmptyView;
 
     public abstract void onFabClick();

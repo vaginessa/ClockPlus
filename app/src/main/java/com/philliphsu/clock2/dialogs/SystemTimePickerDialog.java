@@ -22,8 +22,8 @@ package com.philliphsu.clock2.dialogs;
 import android.app.Dialog;
 import android.app.TimePickerDialog;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.DialogFragment;
+import androidx.annotation.NonNull;
+import androidx.fragment.app.DialogFragment;
 import android.widget.TimePicker;
 
 import com.philliphsu.bottomsheetpickers.time.BottomSheetTimePickerDialog;

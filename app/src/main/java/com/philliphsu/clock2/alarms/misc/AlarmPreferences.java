@@ -21,7 +21,7 @@ package com.philliphsu.clock2.alarms.misc;
 
 import android.content.Context;
 import android.preference.PreferenceManager;
-import android.support.annotation.StringRes;
+import androidx.annotation.StringRes;
 
 import com.philliphsu.clock2.R;
 

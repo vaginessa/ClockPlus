@@ -20,7 +20,7 @@
 package com.philliphsu.clock2.alarms.misc;
 
 import android.content.Context;
-import android.support.annotation.VisibleForTesting;
+import androidx.annotation.VisibleForTesting;
 import android.util.Log;
 
 import java.text.DateFormatSymbols;

@@ -21,13 +21,14 @@ package com.philliphsu.clock2.alarms.ui;
 
 import android.content.res.ColorStateList;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.IdRes;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.NonNull;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.SwitchCompat;
+import androidx.annotation.IdRes;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentManager;
+
 import android.text.format.DateFormat;
 import android.view.MotionEvent;
 import android.view.View;
@@ -51,7 +52,7 @@ import com.philliphsu.clock2.util.TimeTextUtils;
 
 import java.util.Date;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import butterknife.OnTouch;
@@ -76,10 +77,11 @@ public abstract class BaseAlarmViewHolder extends BaseViewHolder<Alarm> {
 
     final FragmentManager mFragmentManager;
 
-    @Bind(R.id.time) TextView mTime;
-    @Bind(R.id.on_off_switch) SwitchCompat mSwitch;
-    @Bind(R.id.label) TextView mLabel;
-    @Bind(R.id.dismiss) Button mDismissButton;
+    @BindView(R.id.time) TextView mTime;
+    @BindView(R.id.on_off_switch)
+    SwitchCompat mSwitch;
+    @BindView(R.id.label) TextView mLabel;
+    @BindView(R.id.dismiss) Button mDismissButton;
 
     public BaseAlarmViewHolder(ViewGroup parent, @LayoutRes int layoutRes,
                                OnListItemInteractionListener<Alarm> listener,

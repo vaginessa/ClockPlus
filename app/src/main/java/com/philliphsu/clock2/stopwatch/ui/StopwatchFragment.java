@@ -28,38 +28,53 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.Loader;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.ContentInfoCompat;
+import androidx.loader.content.Loader;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.SeekBar;
+import android.widget.Toast;
 
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.gson.JsonElement;
+import com.lwkandroid.imagepicker.data.ImageBean;
+import com.lwkandroid.widget.ngv.DefaultNgvAdapter;
+import com.lwkandroid.widget.ngv.NgvChildImageView;
+import com.lwkandroid.widget.ngv.NineGridView;
+import com.philliphsu.clock2.BaseFragment;
 import com.philliphsu.clock2.R;
 import com.philliphsu.clock2.list.RecyclerViewFragment;
 import com.philliphsu.clock2.stopwatch.Lap;
 import com.philliphsu.clock2.stopwatch.StopwatchNotificationService;
 import com.philliphsu.clock2.stopwatch.data.LapCursor;
 import com.philliphsu.clock2.stopwatch.data.LapsCursorLoader;
+import com.philliphsu.clock2.util.GsonUtil;
+import com.philliphsu.clock2.util.HttpUrl;
+import com.philliphsu.clock2.util.OKHttp3Util;
+import com.philliphsu.clock2.util.PeerResultVO;
 import com.philliphsu.clock2.util.ProgressBarUtils;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
+import okhttp3.Request;
 
 /**
  * Created by Phillip Hsu on 8/8/2016.
  */
-public class StopwatchFragment extends RecyclerViewFragment<
-        Lap,
-        LapViewHolder,
-        LapCursor,
-        LapsAdapter> {
+public class StopwatchFragment  extends BaseFragment {
     private static final String TAG = "StopwatchFragment";
 
     // Exposed for StopwatchNotificationService
@@ -67,16 +82,23 @@ public class StopwatchFragment extends RecyclerViewFragment<
     public static final String KEY_PAUSE_TIME          = "pause_time";
     public static final String KEY_CHRONOMETER_RUNNING = "chronometer_running";
 
-    private ObjectAnimator                      mProgressAnimator;
     private SharedPreferences                   mPrefs;
     private WeakReference<FloatingActionButton> mActivityFab;
     private Drawable                            mStartDrawable;
     private Drawable                            mPauseDrawable;
 
-    @Bind(R.id.chronometer) ChronometerWithMillis mChronometer;
-    @Bind(R.id.new_lap)     ImageButton           mNewLapButton;
-    @Bind(R.id.stop)        ImageButton           mStopButton;
-    @Bind(R.id.seek_bar)    SeekBar               mSeekBar;
+    @BindView(R.id.chronometer) ChronometerWithMillis mChronometer;
+    @BindView(R.id.new_lap)     ImageButton           mNewLapButton;
+    @BindView(R.id.stop)        ImageButton           mStopButton;
+
+    @BindView(R.id.ninegridview)
+    NineGridView mNineGridView;
+
+    private GlideDisplayer imageLoader;
+
+    private DefaultNgvAdapter<ImageBean> mAdapter;
+
+    private String ipStr;
 
     /**
      * This is called only when a new instance of this Fragment is being created,
@@ -91,6 +113,7 @@ public class StopwatchFragment extends RecyclerViewFragment<
         // onCreateView() or any other callback that is guaranteed to be called.
         mStartDrawable = ContextCompat.getDrawable(getActivity(), R.drawable.ic_start_24dp);
         mPauseDrawable = ContextCompat.getDrawable(getActivity(), R.drawable.ic_pause_24dp);
+
     }
 
     @Nullable
@@ -100,8 +123,15 @@ public class StopwatchFragment extends RecyclerViewFragment<
         View view = super.onCreateView(inflater, container, savedInstanceState);
 
         mChronometer.setShowCentiseconds(true, true);
+        mPrefs.edit()
+                .putLong(StopwatchFragment.KEY_START_TIME, 0)
+                .putLong(StopwatchFragment.KEY_PAUSE_TIME, 0)
+                .putBoolean(StopwatchFragment.KEY_CHRONOMETER_RUNNING, false)
+                .apply();
         long startTime = getLongFromPref(KEY_START_TIME);
+//        long startTime = 0;
         long pauseTime = getLongFromPref(KEY_PAUSE_TIME);
+//        mChronometer.setBase(0);
         // If we have a nonzero startTime from a previous session, restore it as
         // the chronometer's base. Otherwise, leave the default base.
         if (startTime > 0) {
@@ -123,7 +153,99 @@ public class StopwatchFragment extends RecyclerViewFragment<
         // our Activity's FAB yet, so this call does nothing with the FAB.
         setMiniFabsVisible(startTime > 0);
         mPrefs.registerOnSharedPreferenceChangeListener(mPrefChangeListener);
+
+
+        //设置图片分割间距，默认8dp，默认对应attr属性中divider_line_size
+        mNineGridView.setDividerLineSize(TypedValue.COMPLEX_UNIT_DIP, 2);
+        //设置是否开启编辑模式，默认false，对应attr属性中enable_edit_mode
+        mNineGridView.setEnableEditMode(false);
+        //设置水平方向上有多少列，默认3，对应attr属性中horizontal_child_count
+        mNineGridView.setHorizontalChildCount(3);
+        //设置非编辑模式下，只有一张图片时的尺寸，默认都为0，当宽高都非0才生效，且不会超过NineGridView内部可用总宽度，对应attr属性中single_image_width、single_image_height
+        mNineGridView.setSingleImageSize(TypedValue.COMPLEX_UNIT_DIP, 150, 200);
+        imageLoader = new GlideDisplayer();
+        mAdapter = new DefaultNgvAdapter<ImageBean>(100, imageLoader, getActivity());
+
+        mNineGridView.setAdapter(mAdapter);
+
+        download();
+
+        mAdapter.setOnChildClickListener(new DefaultNgvAdapter.OnChildClickedListener<ImageBean>()
+        {
+            @Override
+            public void onPlusImageClicked(ImageView plusImageView, int dValueToLimited)
+            {
+
+            }
+
+            @Override
+            public void onContentImageClicked(@NonNull int targetNum, String targetPath, @NonNull ContentInfoCompat source, int width, int height)
+            {
+
+                String tag2 = (String)source.getClip().getDescription().getLabel();
+                int sourceNum = Integer.parseInt(tag2);
+                NgvChildImageView sourceD = (NgvChildImageView)mNineGridView.getChildAt(sourceNum);
+                String sourcePath = (String)source.getClip().getItemAt(0).getText();
+
+                NgvChildImageView targetD = (NgvChildImageView)mNineGridView.getChildAt(targetNum);
+
+
+                Log.e("ImagePicker", "come here");
+                //target
+                imageLoader.load(sourcePath, targetD,
+                        width, height);
+                //source
+                imageLoader.load(targetPath, sourceD,
+                        width, height);
+            }
+
+            @Override
+            public void onImageDeleted(int position, ImageBean data)
+            {
+            }
+        });
+
         return view;
+    }
+
+    private void download( ) {
+//        final Resources resources = getResources();
+//        final SharedPreferencesUtil sp = new SharedPreferencesUtil(activity);
+        String token = "test-token";
+
+        Log.i(TAG, "enter here " );
+        ipStr = "http://api.punengshuo.com";
+        Log.i(TAG, ipStr + HttpUrl.DOWNLOAD_REQUEST );
+        OKHttp3Util.getAsyn(ipStr + HttpUrl.DOWNLOAD_REQUEST, token, new OKHttp3Util.ResultCallback<JsonElement>() {
+            @Override
+            public void onError(Request request, Exception e) {
+                Log.e(TAG, "请求失败=" + e.toString());
+            }
+
+            @Override
+            public void onResponse(JsonElement response) {
+                Log.e(TAG,"成功--->" + response.toString());
+
+                PeerResultVO result = GsonUtil.GsonToBean(response.toString(), PeerResultVO.class);
+
+                List<ImageBean> list = new ArrayList<>();
+
+                for(String str : result.getData().getPiecces()){
+                    ImageBean imageBean = new ImageBean();
+//                    imageBean.setImageId(imageId);
+                    imageBean.setImagePath(str);
+//                    imageBean.setLastModified(ImagePickerComUtils.isNotEmpty(lastModify) ? Long.valueOf(lastModify) : 0);
+                    imageBean.setWidth(200);
+                    imageBean.setHeight(200);
+//                    imageBean.setFolderId(folderId);
+                    list.add(imageBean);
+                }
+
+                mAdapter.addDataList(list);
+
+            }
+        });
+        Log.i(TAG, "enter end " );
     }
 
     @Override
@@ -142,7 +264,7 @@ public class StopwatchFragment extends RecyclerViewFragment<
         // options "internal API" and inflates its menu in there if it has one.
         //
         // To us, this just makes for a very good visibility check.
-        if (savedInstanceState != null && isMenuVisible()) {
+        if (savedInstanceState != null ) {
             // This is a pretty good indication that we just rotated.
             // isMenuVisible() filters out the case when you rotate on page 1 and scroll
             // to page 2, the icon will prematurely change; that happens because at page 2,
@@ -168,103 +290,16 @@ public class StopwatchFragment extends RecyclerViewFragment<
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // Every view that was in our tree is dereferenced for us.
-        // The reason we can control the animator here is because members
-        // are not dereferenced here.
-        if (mProgressAnimator != null) {
-            mProgressAnimator.removeAllListeners();
-        }
+
         Log.d(TAG, "onDestroyView()");
         mPrefs.unregisterOnSharedPreferenceChangeListener(mPrefChangeListener);
     }
 
-    @Override
-    protected boolean hasEmptyView() {
-        return false;
-    }
-
-    @Override
-    public Loader<LapCursor> onCreateLoader(int id, Bundle args) {
-        return new LapsCursorLoader(getActivity());
-    }
-
-    @Override
-    public void onLoadFinished(Loader<LapCursor> loader, LapCursor data) {
-        Log.d(TAG, "onLoadFinished()");
-        super.onLoadFinished(loader, data);
-        // TODO: Will manipulating the cursor's position here affect the current
-        // position in the adapter? Should we make a defensive copy and manipulate
-        // that copy instead?
-        Lap currentLap = null;
-        Lap previousLap = null;
-        if (data.moveToFirst()) {
-            currentLap = data.getItem();
-//            Log.d(TAG, "Current lap ID = " + mCurrentLap.getId());
-        }
-        if (data.moveToNext()) {
-            previousLap = data.getItem();
-//            Log.d(TAG, "Previous lap ID = " + mPreviousLap.getId());
-        }
-        if (currentLap != null && previousLap != null) {
-            // We really only want to start a new animator when the NEWLY RETRIEVED current
-            // and previous laps are different (i.e. different laps, NOT merely different instances)
-            // from the CURRENT current and previous laps, as referenced by mCurrentLap and mPreviousLap.
-            // However, both equals() and == are insufficient. Our cursor's getItem() will always
-            // create new instances of Lap representing the underlying data, so an '== test' will
-            // always fail to convey our intention. Also, equals() would fail especially when the
-            // physical lap is paused/resumed, because the two instances in comparison
-            // (the retrieved and current) would obviously
-            // have different values for, e.g., t1 and pauseTime.
-            //
-            // Therefore, we'll just always end the previous animator and start a new one.
-            //
-            // NOTE: If we just recreated ourselves due to rotation, mChronometer.isRunning() == false,
-            // because it is not yet visible (i.e. mVisible == false).
-            if (isStopwatchRunning()) {
-                startNewProgressBarAnimator(currentLap, previousLap);
-            } else {
-                // I verified the bar was visible already without this, so we probably don't need this,
-                // but it's just a safety measure..
-                // ACTUALLY NOT A SAFETY MEASURE! TODO: Why was this not acceptable?
-//                mSeekBar.setVisibility(View.VISIBLE);
-                double ratio = getCurrentLapProgressRatio(currentLap, previousLap);
-                if (ratio > 0d) {
-                    // TODO: To be consistent with the else case, we could set the visibility
-                    // to VISIBLE if we cared.
-                    ProgressBarUtils.setProgress(mSeekBar, ratio);
-                } else {
-                    mSeekBar.setVisibility(View.INVISIBLE);
-                }
-            }
-        } else {
-            mSeekBar.setVisibility(View.INVISIBLE);
-        }
-    }
-
-    @Override
-    public void onFabClick() {
-        final boolean running = mChronometer.isRunning();
-        syncFabIconWithStopwatchState(!running/*invert the current state*/);
-
-        final Intent serviceIntent = new Intent(getActivity(), StopwatchNotificationService.class);
-        if (getLongFromPref(KEY_START_TIME) == 0) {
-            setMiniFabsVisible(true);
-            // Handle the default action, i.e. post the notification for the first time.
-            getActivity().startService(serviceIntent);
-        }
-        serviceIntent.setAction(StopwatchNotificationService.ACTION_START_PAUSE);
-        getActivity().startService(serviceIntent);
-    }
 
     @Override
     public void onPageSelected() {
         setMiniFabsVisible(getLongFromPref(KEY_START_TIME) > 0);
         syncFabIconWithStopwatchState(isStopwatchRunning());
-    }
-
-    @Override
-    protected LapsAdapter onCreateAdapter() {
-        return new LapsAdapter();
     }
 
     @Override
@@ -295,54 +330,6 @@ public class StopwatchFragment extends RecyclerViewFragment<
 
     private void syncFabIconWithStopwatchState(boolean running) {
         mActivityFab.get().setImageDrawable(running ? mPauseDrawable : mStartDrawable);
-    }
-
-    private void startNewProgressBarAnimator(Lap currentLap, Lap previousLap) {
-        final long timeRemaining = remainingTimeBetweenLaps(currentLap, previousLap);
-        if (timeRemaining <= 0) {
-            mSeekBar.setVisibility(View.INVISIBLE);
-            return;
-        }
-        if (mProgressAnimator != null) {
-            mProgressAnimator.end();
-        }
-        // This can't go in the onAnimationStart() callback because the listener is added
-        // AFTER ProgressBarUtils.startNewAnimator() starts the animation.
-        mSeekBar.setVisibility(View.VISIBLE);
-        mProgressAnimator = ProgressBarUtils.startNewAnimator(mSeekBar,
-                getCurrentLapProgressRatio(currentLap, previousLap), timeRemaining);
-        mProgressAnimator.addListener(new Animator.AnimatorListener() {
-            private boolean cancelled;
-
-            @Override
-            public void onAnimationStart(Animator animation) {
-
-            }
-
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                // Pausing the stopwatch (and the current lap) uses Animator.cancel(), which will
-                // not only fire onAnimationCancel(Animator), but also onAnimationEnd(Animator).
-                // We should only let this call through when actually Animator.end() was called,
-                // and that happens when we stop() the stopwatch.
-                // If we didn't have this check, we'd be hiding the SeekBar every time we pause
-                // a lap.
-                if (!cancelled) {
-                    mSeekBar.setVisibility(View.INVISIBLE);
-                }
-                cancelled = false;
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-                cancelled = true;
-            }
-
-            @Override
-            public void onAnimationRepeat(Animator animation) {
-
-            }
-        });
     }
 
     private double getCurrentLapProgressRatio(Lap currentLap, Lap previousLap) {
@@ -399,38 +386,8 @@ public class StopwatchFragment extends RecyclerViewFragment<
 //            }
             mChronometer.setBase(startTime);
             mChronometer.setStarted(running);
-            // Starting an instance of Animator is not the responsibility of this method,
-            // but is of onLoadFinished().
-            if (mProgressAnimator != null && !running) {
-                // Wait until both values have been notified of being reset.
-                if (startTime == 0 && pauseTime == 0) {
-                    mProgressAnimator.end();
-                } else {
-                    mProgressAnimator.cancel();
-                }
-            }
+
         }
     };
 
-    // ======================= DO NOT IMPLEMENT ============================
-
-    @Override
-    protected void onScrolledToStableId(long id, int position) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void onListItemClick(Lap item, int position) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void onListItemDeleted(Lap item) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void onListItemUpdate(Lap item, int position) {
-        throw new UnsupportedOperationException();
-    }
 }

@@ -25,10 +25,10 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.content.Loader;
-import android.support.v7.widget.GridLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.Nullable;
+import androidx.loader.content.Loader;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,7 +41,6 @@ import com.philliphsu.clock2.timers.Timer;
 import com.philliphsu.clock2.timers.data.TimerCursor;
 import com.philliphsu.clock2.timers.data.TimersListCursorLoader;
 
-import static butterknife.ButterKnife.findById;
 import static com.philliphsu.clock2.util.ConfigurationUtils.getOrientation;
 
 public class TimersFragment extends RecyclerViewFragment<Timer, TimerViewHolder, TimerCursor, TimersCursorAdapter> {
@@ -70,11 +69,11 @@ public class TimersFragment extends RecyclerViewFragment<Timer, TimerViewHolder,
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = super.onCreateView(inflater, container, savedInstanceState);
         final Resources r = getResources();
-        if (getOrientation(r) == Configuration.ORIENTATION_LANDSCAPE) {
-            RecyclerView list = findById(view, R.id.list);
-            int cardViewMargin = r.getDimensionPixelSize(R.dimen.cardview_margin);
-            list.setPaddingRelative(cardViewMargin/*start*/, cardViewMargin/*top*/, 0, list.getPaddingBottom());
-        }
+//        if (getOrientation(r) == Configuration.ORIENTATION_LANDSCAPE) {
+//            RecyclerView list = findById(view, R.id.list);
+//            int cardViewMargin = r.getDimensionPixelSize(R.dimen.cardview_margin);
+//            list.setPaddingRelative(cardViewMargin/*start*/, cardViewMargin/*top*/, 0, list.getPaddingBottom());
+//        }
         return view;
     }
 

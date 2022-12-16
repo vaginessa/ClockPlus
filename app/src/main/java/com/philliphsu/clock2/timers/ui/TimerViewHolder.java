@@ -22,15 +22,15 @@ package com.philliphsu.clock2.timers.ui;
 import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
-import android.support.annotation.IdRes;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.PopupMenu;
+import androidx.annotation.IdRes;
+import androidx.core.content.ContextCompat;
+import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.PopupMenu;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -46,7 +46,7 @@ import com.philliphsu.clock2.timers.Timer;
 import com.philliphsu.clock2.util.FragmentTagUtils;
 import com.philliphsu.clock2.util.ProgressBarUtils;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 /**
@@ -63,13 +63,13 @@ public class TimerViewHolder extends BaseViewHolder<Timer> {
     private final PopupMenu mPopupMenu;
     private final AddLabelDialogController mAddLabelDialogController;
 
-    @Bind(R.id.label) TextView mLabel;
-    @Bind(R.id.duration) CountdownChronometer mChronometer;
-    @Bind(R.id.seek_bar) SeekBar mSeekBar;
-    @Bind(R.id.add_one_minute) TextView mAddOneMinute;
-    @Bind(R.id.start_pause) ImageButton mStartPause;
-    @Bind(R.id.stop) ImageButton mStop;
-    @Bind(R.id.menu) ImageButton mMenuButton;
+    @BindView(R.id.label) TextView mLabel;
+    @BindView(R.id.duration) CountdownChronometer mChronometer;
+    @BindView(R.id.seek_bar) SeekBar mSeekBar;
+    @BindView(R.id.add_one_minute) TextView mAddOneMinute;
+    @BindView(R.id.start_pause) ImageButton mStartPause;
+    @BindView(R.id.stop) ImageButton mStop;
+    @BindView(R.id.menu) ImageButton mMenuButton;
 
     public TimerViewHolder(ViewGroup parent, OnListItemInteractionListener<Timer> listener,
                            AsyncTimersTableUpdateHandler asyncTimersTableUpdateHandler) {

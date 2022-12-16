@@ -22,9 +22,10 @@ package com.philliphsu.clock2.timers;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.util.SimpleArrayMap;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.SimpleArrayMap;
+
 import android.util.Log;
 
 import com.philliphsu.clock2.MainActivity;

@@ -25,8 +25,9 @@ import android.graphics.drawable.Drawable;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Vibrator;
-import android.support.annotation.IdRes;
-import android.support.v4.graphics.drawable.DrawableCompat;
+import androidx.annotation.IdRes;
+import androidx.core.graphics.drawable.DrawableCompat;
+
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -43,7 +44,7 @@ import com.philliphsu.clock2.list.OnListItemInteractionListener;
 import com.philliphsu.clock2.timepickers.Utils;
 import com.philliphsu.clock2.util.FragmentTagUtils;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.OnClick;
 
 /**
@@ -52,11 +53,10 @@ import butterknife.OnClick;
 public class ExpandedAlarmViewHolder extends BaseAlarmViewHolder {
     private static final String TAG = "ExpandedAlarmViewHolder";
 
-    @Bind(R.id.ok) Button mOk;
-    @Bind(R.id.delete) Button mDelete;
-    @Bind(R.id.ringtone) Button mRingtone;
-    @Bind(R.id.vibrate) TempCheckableImageButton mVibrate;
-    @Bind({R.id.day0, R.id.day1, R.id.day2, R.id.day3, R.id.day4, R.id.day5, R.id.day6})
+    @BindView(R.id.ok) Button mOk;
+    @BindView(R.id.delete) Button mDelete;
+    @BindView(R.id.ringtone) Button mRingtone;
+    @BindView(R.id.vibrate) TempCheckableImageButton mVibrate;
     ToggleButton[] mDays;
 
     private final ColorStateList mDayToggleColors;

@@ -19,7 +19,7 @@
 
 package com.philliphsu.clock2.dialogs;
 
-import android.support.v4.app.FragmentManager;
+import androidx.fragment.app.FragmentManager;
 import android.util.Log;
 
 /**

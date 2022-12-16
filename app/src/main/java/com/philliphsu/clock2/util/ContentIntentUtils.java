@@ -22,7 +22,7 @@ package com.philliphsu.clock2.util;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.philliphsu.clock2.MainActivity;
 import com.philliphsu.clock2.list.RecyclerViewFragment;

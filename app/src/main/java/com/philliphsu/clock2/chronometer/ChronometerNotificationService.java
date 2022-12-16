@@ -25,12 +25,12 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
-import android.support.annotation.CallSuper;
-import android.support.annotation.DrawableRes;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.util.SimpleArrayMap;
+import androidx.annotation.CallSuper;
+import androidx.annotation.DrawableRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.collection.SimpleArrayMap;
+import androidx.core.app.NotificationCompat;
 
 import com.philliphsu.clock2.R;
 
@@ -47,11 +47,7 @@ public abstract class ChronometerNotificationService extends Service {
     // builder instance with attributes that all timer notifications will have.
 //    private NotificationCompat.Builder mNoteBuilder;
     private NotificationManager mNotificationManager;
-    /**
-     * The default capacity of an array map is 0.
-     * The minimum amount by which the capacity of a ArrayMap will increase
-     * is currently {@link SimpleArrayMap#BASE_SIZE 4}.
-     */
+
     private final SimpleArrayMap<Long, NotificationCompat.Builder> mNoteBuilders = new SimpleArrayMap<>();
     private final SimpleArrayMap<Long, ChronometerNotificationThread> mThreads = new SimpleArrayMap<>();
     private final SimpleArrayMap<Long, ChronometerDelegate> mDelegates = new SimpleArrayMap<>();
@@ -332,7 +328,7 @@ public abstract class ChronometerNotificationService extends Service {
         // TODO: The source indicates mActions is hidden, so how are we able to access it?
         // Will it remain accessible for all SDK versions? If not, we would have to rebuild
         // the entire notification with a new local Builder instance.
-        mNoteBuilders.get(id).mActions.clear();
+//        mNoteBuilders.get(id).mActions.clear();
     }
 
     /**

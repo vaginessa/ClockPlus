@@ -19,8 +19,9 @@
 
 package com.philliphsu.clock2.alarms.ui;
 
-import android.support.v7.widget.RecyclerView;
 import android.view.ViewGroup;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.philliphsu.clock2.list.BaseCursorAdapter;
 import com.philliphsu.clock2.list.OnListItemInteractionListener;

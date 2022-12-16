@@ -21,7 +21,7 @@ package com.philliphsu.clock2.chronometer;
 
 import android.content.res.Resources;
 import android.os.SystemClock;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.TextUtils;
